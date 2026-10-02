@@ -59,6 +59,7 @@ jobs:
       - name: Release erstellen
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh release create "v1.0.${{ github.run_number }}" \
             --title "Version 1.0.${{ github.run_number }}" \
