@@ -38,7 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deployment starten
-        run: echo "Deploy nach ${{ secrets.DEPLOY_TOKEN }}"
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          echo "Token-Länge: ${#DEPLOY_TOKEN}"
 
   release:
     needs: build
