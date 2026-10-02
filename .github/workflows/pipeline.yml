@@ -51,7 +51,11 @@ jobs:
         with:
           path: ~/.cache/pip
           key: pip-cache
-
+      - name: Paket herunterladen
+        uses: actions/download-artifact@v4
+        with:
+          name: app-paket
+          path: build
       - name: Release erstellen
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
