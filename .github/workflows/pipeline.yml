@@ -7,7 +7,7 @@ on:
 env:
   PYTHON_VERSION: "3.11"
 
-permissions:                      
+permissions:
   contents: read
 
 jobs:
@@ -54,9 +54,10 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'   
     runs-on: ubuntu-latest
-    environment: production       
-    permissions:                  
+    environment: production
+    permissions:
       contents: write
       actions: read
     steps:
@@ -69,9 +70,20 @@ jobs:
       - name: Show package
         run: ls -l build/
 
-      - name: Check credentials  
+      - name: Check credentials
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           echo "Token length: ${#DEPLOY_TOKEN}"
           echo "Deploy target: ${{ vars.DEPLOY_TARGET }}"
+
+      - name: Create release        
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "v1.0.${{ github.run_number }}" \
+            --target "${{ github.sha }}" \
+            --title "Version 1.0.${{ github.run_number }}" \
+            --notes "Automatic deployment from GitHub Actions" \
+            build/*.zip
