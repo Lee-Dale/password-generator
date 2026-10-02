@@ -19,8 +19,45 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
       - name: Run tests
         run: python -m pytest -v
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build package
+        run: |
+          mkdir -p build
+          python -m zipfile -c build/app.zip src/
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-package
+          path: build/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: build
+
+      - name: Show package
+        run: ls -l build/
