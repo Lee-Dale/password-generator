@@ -1,11 +1,8 @@
-name: CI/CD Pipeline
+name: Pipeline
 
 on:
   push:
   pull_request:
-
-env:
-  PYTHON_VERSION: "3.11"
 
 permissions:
   contents: read
@@ -14,76 +11,51 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Run tests
+          python-version: 3.10
+      - name: Tests ausführen
         run: python -m pytest -v
+      - name: Dependencies installieren
+        run: python -m pip install -r requirement.txt
 
   build:
-    needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Build package
+      - name: Paket bauen
         run: |
           mkdir -p build
           python -m zipfile -c build/app.zip src/
-
-      - name: Upload package
+      - name: Paket hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: app-package
+          name: app-paket
           path: build/
 
   deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main'   
     runs-on: ubuntu-latest
-    environment: production
+    steps:
+      - name: Deployment starten
+        run: echo "Deploy nach ${{ secrets.DEPLOY_TOKEN }}"
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
     steps:
-      - name: Download package
-        uses: actions/download-artifact@v4
+      - name: Pip-Cache
+        uses: actions/cache@v4
         with:
-          name: app-package
-          path: build
+          path: ~/.cache/pip
+          key: pip-cache
 
-      - name: Show package
-        run: ls -l build/
-
-      - name: Check credentials
-        env:
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-        run: |
-          echo "Token length: ${#DEPLOY_TOKEN}"
-          echo "Deploy target: ${{ vars.DEPLOY_TARGET }}"
-
-      - name: Create release        
+      - name: Release erstellen
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
           gh release create "v1.0.${{ github.run_number }}" \
-            --target "${{ github.sha }}" \
             --title "Version 1.0.${{ github.run_number }}" \
-            --notes "Automatic deployment from GitHub Actions" \
-            build/*.zip
+            --notes "Release" \
+            build/app.zip
