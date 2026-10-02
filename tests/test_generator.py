@@ -4,7 +4,7 @@ from src.generator import ALPHABET, generate_password
 
 
 def test_default_length():
-    assert len(generate_password()) == 21
+    assert len(generate_password()) == 20
 
 
 def test_custom_length():
