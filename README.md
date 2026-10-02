@@ -23,7 +23,7 @@ Die Pipeline ist in der Datei `.github/workflows/pipeline.yml`. Sie hat drei Job
 | Job | Was macht er? | Braucht (`needs`) |
 |---|---|---|
 | `test` | Installiert die Pakete und startet die Tests mit `python -m pytest -v`. Er benutzt einen Cache für pip. | nichts |
-| `build` | Packt den Ordner `src/` in die Datei `build/app.zip`. Danach lädt er sie als Artifact `app-paket` hoch. | `test` |
+| `build` | Packt den Ordner `src/` in die Datei `build/app.zip`. Danach lädt er sie als Artifact `app-package` hoch. | `test` |
 | `deploy` | Lädt das Artifact herunter, prüft das Secret und erstellt ein Release mit `app.zip`. | `build` |
 
 Wenn ein Job fehlschlägt, starten die nächsten Jobs nicht.
